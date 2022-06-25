@@ -55,3 +55,46 @@ bridge-to:
 | password | Optional key to provide password if auth is needed  |                                                              |                                                                                                                                                                                              |
 | topic    | x                                                   | Topic to bridge from the source broker<br/> Wildcards are ok | For every incoming message from source broker this topic will be appended<br/> If bridge to root, leave empty string,<br/>if bridge to non-root location make sure to leave out trailing '/' |
 
+
+# Run script on start up (systemd)
+
+1. Create system service at `/etc/systemd/system/mqtt_bridge.service`
+``` 
+[Unit]
+Description=MQTT Bridge
+
+Wants=network.target
+After=syslog.target network-online.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/bridge_bootstrap.sh
+Restart=on-failure
+RestartSec=10
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target
+```
+
+2. Set permissions
+```bash 
+sudo chmod 640 /etc/systemd/system/mqtt_bridge.service
+```
+
+3. Create bootstrap file (/home/pi/bridge_bootstrap.sh)
+```
+#!/bin/bash
+echo "Starting the bridge service"
+cd /home/pi/mqtt_bridge
+source venv/bin/activate
+python bridge.py /home/pi/mqtt_bridge_config.yml
+```
+
+4. Start service
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable mqtt_bridge.service
+sudo systemctl start mqtt_bridge.service
+sudo systemctl status mqtt_bridge.service
+```
