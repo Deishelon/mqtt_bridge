@@ -19,8 +19,8 @@ def connect_mqtt(client_id, username, password, host):
     return client
 
 
-def publish(client: mqtt_client, payload, topic: str):
-    result = client.publish(topic, payload)  # result: [0, 1]
+def publish(client: mqtt_client, payload, topic: str, is_retained):
+    result = client.publish(topic, payload, retain=is_retained)  # result: [0, 1]
     status = result[0]
     if status == 0:
         print(f"Send `{payload}` to topic `{topic}`")
@@ -53,11 +53,12 @@ def start_bridge(bridge_config):
 
     def on_message_from_source_broker(client, userdata, msg):
         decoded_msg = msg.payload.decode()
-        print(f"Received `{decoded_msg}` from `{msg.topic}` topic")
+        is_retained = msg.retain
+        print(f"Received `{decoded_msg}` from `{msg.topic}` topic, retained: {is_retained}")
         if to_connection.is_connected():
             destination_topic = f"{to_topic}/{msg.topic}"
             print(f"Forwarding message to destination broker at {destination_topic}")
-            publish(to_connection, decoded_msg, destination_topic)
+            publish(to_connection, decoded_msg, destination_topic, is_retained)
             pass
 
     while True:
