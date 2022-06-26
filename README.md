@@ -68,7 +68,7 @@ After=syslog.target network-online.target
 
 [Service]
 Type=simple
-ExecStart=/home/pi/bridge_bootstrap.sh
+ExecStart=bash -c "cd /home/pi/mqtt_bridge; source venv/bin/activate; python bridge.py /home/pi/mqtt_bridge_config.yml"
 Restart=on-failure
 RestartSec=10
 KillMode=mixed
@@ -82,16 +82,7 @@ WantedBy=multi-user.target
 sudo chmod 640 /etc/systemd/system/mqtt_bridge.service
 ```
 
-3. Create bootstrap file (/home/pi/bridge_bootstrap.sh)
-```
-#!/bin/bash
-echo "Starting the bridge service"
-cd /home/pi/mqtt_bridge
-source venv/bin/activate
-python bridge.py /home/pi/mqtt_bridge_config.yml
-```
-
-4. Start service
+3. Start service
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable mqtt_bridge.service
